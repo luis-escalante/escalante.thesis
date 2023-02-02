@@ -64,7 +64,7 @@ for(i in 2018:2022){
   #Step3: aggregating corps stats
   {
     total_corp_housing<-rbind(total_corp_housing,Apprsl[corp==1,.(value=sum(corp),year=i),by=.(py_owner_name)])#this filters corplandlords for APPRSL 
-    total_corp_housing2<-rbind(total_corp_housing,Apprsl2[corp==1,.(value=sum(corp),year=i),by=.(py_owner_name)])#this filters corplandlords for APPRSL12
+    #total_corp_housing2<-rbind(total_corp_housing,Apprsl2[corp==1,.(value=sum(corp),year=i),by=.(py_owner_name)])#this filters corplandlords for APPRSL
     
   }
   
