@@ -50,7 +50,7 @@ for(i in 2018:2022){
   q<-read.dbf(paste0("../BCAD Data/",shp_list_folder[i-2017],"/",shp_list_file[i-2017])) #Reads addreses to get lat long
   q<-q[grepl(paste(corps,collapse = "|"),  q$Owner),]
   Apprsl[,prop_id_num:=as.numeric(prop_id)]
-  Apprsl2<-merge(Apprsl[corp==1,],q[,c("PropID","Longitude","Latitude")],by.x = "prop_id_num",by.y = "PropID",all.x = T,sort = F)
+  Apprsl2<-merge(Apprsl[corp==1,],q[,c("PropID","Longitude","Latitude")],by.x = "prop_id_num",by.y = "PropID",all.x = T,sort = F) #error during line 53
   
   #Step 2.1: adding tract and geoid with spatial join
   Apprsl2_sf<-st_as_sf(Apprsl2[!is.na(Apprsl2$Latitude),],coords = c("Longitude","Latitude"),crs=2278)
