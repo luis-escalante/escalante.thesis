@@ -1,5 +1,10 @@
 #loading libraries
-
+library(ggplot2)
+library(data.table)
+library(sf)
+library(foreign)
+library(mapview)
+library(classInt)
 
 
 #---- Step 1 ----
