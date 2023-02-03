@@ -3,7 +3,7 @@ library(stringi)
 library(data.table)
 library(foreign)
 library(sf)
-
+setwd("C:/Users/ydj154/OneDrive - University of Texas at San Antonio/Documents/escalante.thesis")
 ###DATA LOADING#
 file_list<-dir("BCAD Data/")
 total_corp_housing<-NULL
@@ -12,8 +12,18 @@ types<-gsub(pattern = "\\s*\\([^\\)]+\\)",replacement = "",x = f3_fields$Datatyp
 
 shp_list_folder<-dir("../BCAD Data/")
 shp_list_folder<-shp_list_folder[grepl(pattern = "_GIS",x = shp_list_folder)]
-shp_list_file<-c("BCAD_2018_043018.dbf","BCAD_2019_with_Attributes_August16.dbf")
+shp_list_file<-c("BCAD_2018_043018.dbf","BCAD_2019_with_Attributes_August16.dbf","BCAD_2020_with_Attributes_Public2020August17.dbf",
+                 "BCAD_2021_with_Attributes_Public2021September02.dbf","BCAD_2022_with_Attributes_Public2022August08.dbf")
 
+#write an object that writes the variable names in each year's .dbf file
+#need to make a list that has the year, and the list of names. 
+q_var_list<-data.frame(v_2018=c("PropID","Longitude","Latitude"),
+                       v_2019=c("prop_id","X", "Y"),
+                       v_2020=c("prop_id"), #2020 dbf files doesnt have lat and long or x y 
+                       v_2021=c("prop_id","X", "Y"),
+                       v_2022=c("prop_id","X", "Y"))
+                                                                        
+#identify names of corporate landlords
 corps<-c("LLC","LTD","LP","INC","TRUST","CORP","HOMES","ASSOC","PROPERTIES","ESTATE","PROPERTY MANAGEMENT")
 
 #tracts loading
@@ -22,6 +32,8 @@ q_b_tracts<-tigris::tracts(county="Bexar",state = "TX",cb = T,year = 2020)
 #crsuggest::suggest_crs(q_b_tracts)
 
 q_b_tracts<-st_transform(q_b_tracts,crs=2847)
+
+
 
 for(i in 2018:2022){
   print(paste("i am in",i))
@@ -44,28 +56,41 @@ for(i in 2018:2022){
                   Apprsl$py_owner_name, value=F)
   
   Apprsl[matches1,corp:=1]#this denotes a yes/no on if a row is corplandlord or not.
+  Apprsl[,prop_id_num:=as.numeric(prop_id)]
   }
   #Step 2: adding lat long by year
   {
-  q<-read.dbf(paste0("../BCAD Data/",shp_list_folder[i-2017],"/",shp_list_file[i-2017])) #Reads addreses to get lat long
-  q<-q[grepl(paste(corps,collapse = "|"),  q$Owner),]
-  Apprsl[,prop_id_num:=as.numeric(prop_id)]
-  Apprsl2<-merge(Apprsl[corp==1,],q[,c("PropID","Longitude","Latitude")],by.x = "prop_id_num",by.y = "PropID",all.x = T,sort = F) #error during line 53
+  if(i!=2020){
+    q<-read.dbf(paste0("../BCAD Data/",shp_list_folder[i-2017],"/",shp_list_file[i-2017])) #Reads addreses to get lat long
+    q<-q[grepl(paste(corps,collapse = "|"),  q$Owner),]
+    q<-q[, q_var_list[,i-2017]]
+  }
+      
+  Apprsl2<-merge(Apprsl[corp==1,],q,by.x = "prop_id_num",by.y = q_var_list[1,i-2017],all.x = T,sort = F) 
   
   #Step 2.1: adding tract and geoid with spatial join
-  Apprsl2_sf<-st_as_sf(Apprsl2[!is.na(Apprsl2$Latitude),],coords = c("Longitude","Latitude"),crs=2278)
+  nas<-as.vector(is.na(Apprsl2[,q_var_list[2,i-2017],with=F]))
+  Apprsl2_sf<-st_as_sf(Apprsl2[!nas,],coords = c(q_var_list[2,i-2017],q_var_list[3,i-2017]),crs=2278) #for 2019, an error occurrs here. it says Error in `[.data.frame`(x, i) : undefined columns selected
+      #I ran traceback() function , and it shows:
+             #  8: stop("undefined columns selected")
+             #  7: `[.data.frame`(x, i)
+             #  6: `[.data.table`(x, coords)
+             #  5: x[coords]
+             #  4: lapply(x[coords], as.numeric)
+             #  3: as.data.frame(lapply(x[coords], as.numeric))
+             #  2: st_as_sf.data.frame(Apprsl2[!is.na(Apprsl2$Latitude), ], coords = c("Longitude","Latitude"), crs = 2278)
+             #  1: st_as_sf(Apprsl2[!is.na(Apprsl2$Latitude), ], coords = c("Longitude","Latitude"), crs = 2278)
   Apprsl2_sf<-st_transform(Apprsl2_sf,crs = 2847)
   Apprsl2_sf<-st_join(Apprsl2_sf,q_b_tracts[,c("GEOID","TRACTCE")])
   Apprsl2_sf$X<-st_coordinates(Apprsl2_sf)[,1]
   Apprsl2_sf$Y<-st_coordinates(Apprsl2_sf)[,2]
-  Apprsl2<-st_drop_geometry(Apprsl2_sf)
+  Apprsl2<-data.table(st_drop_geometry(Apprsl2_sf),stringsAsFactors = F)
     }
   
   #Step3: aggregating corps stats
   {
-    total_corp_housing<-rbind(total_corp_housing,Apprsl[corp==1,.(value=sum(corp),year=i),by=.(py_owner_name)])#this filters corplandlords for APPRSL 
-    #total_corp_housing2<-rbind(total_corp_housing,Apprsl2[corp==1,.(value=sum(corp),year=i),by=.(py_owner_name)])#this filters corplandlords for APPRSL
-    
+    #total_corp_housing1<-rbind(total_corp_housing,Apprsl[corp==1,.(value=sum(corp),year=i),by=.(py_owner_name)])#this filters corplandlords for APPRSL 
+    total_corp_housing<-rbind(total_corp_housing,Apprsl2[corp==1,.(value=sum(corp),year=i),by=.(py_owner_name,GEOID,)])#this filters corplandlords for APPRSL
   }
   
   fwrite(x=total_corp_housing,file = "../BCAD Data/total_corp_housing.csv")
