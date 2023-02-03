@@ -5,7 +5,7 @@ library(foreign)
 library(sf)
 setwd("C:/Users/ydj154/OneDrive - University of Texas at San Antonio/Documents/escalante.thesis")
 ###DATA LOADING#
-file_list<-dir("BCAD Data/")
+file_list<-dir("../BCAD Data/")
 total_corp_housing<-NULL
 f3_fields<-read_xlsx("../BCAD DATA/Appraisal Export Layout - 8.0.25.xlsx",range = "A55:F486",col_names = T)
 types<-gsub(pattern = "\\s*\\([^\\)]+\\)",replacement = "",x = f3_fields$Datatype)
@@ -56,7 +56,8 @@ for(i in 2018:2022){
                   Apprsl$py_owner_name, value=F)
   
   Apprsl[matches1,corp:=1]#this denotes a yes/no on if a row is corplandlord or not.
-  Apprsl[,prop_id_num:=as.numeric(prop_id)]
+  Apprsl[,prop_id_num:=as.numeric(prop_id)] #making prop_id a number, removing the zeroes
+  Apprsl[,mark_val:=as.numeric(market_value)]#making market_value  a number, removing the zeroes
   }
   #Step 2: adding lat long by year
   {
@@ -70,16 +71,7 @@ for(i in 2018:2022){
   
   #Step 2.1: adding tract and geoid with spatial join
   nas<-as.vector(is.na(Apprsl2[,q_var_list[2,i-2017],with=F]))
-  Apprsl2_sf<-st_as_sf(Apprsl2[!nas,],coords = c(q_var_list[2,i-2017],q_var_list[3,i-2017]),crs=2278) #for 2019, an error occurrs here. it says Error in `[.data.frame`(x, i) : undefined columns selected
-      #I ran traceback() function , and it shows:
-             #  8: stop("undefined columns selected")
-             #  7: `[.data.frame`(x, i)
-             #  6: `[.data.table`(x, coords)
-             #  5: x[coords]
-             #  4: lapply(x[coords], as.numeric)
-             #  3: as.data.frame(lapply(x[coords], as.numeric))
-             #  2: st_as_sf.data.frame(Apprsl2[!is.na(Apprsl2$Latitude), ], coords = c("Longitude","Latitude"), crs = 2278)
-             #  1: st_as_sf(Apprsl2[!is.na(Apprsl2$Latitude), ], coords = c("Longitude","Latitude"), crs = 2278)
+  Apprsl2_sf<-st_as_sf(Apprsl2[!nas,],coords = c(q_var_list[2,i-2017],q_var_list[3,i-2017]),crs=2278)
   Apprsl2_sf<-st_transform(Apprsl2_sf,crs = 2847)
   Apprsl2_sf<-st_join(Apprsl2_sf,q_b_tracts[,c("GEOID","TRACTCE")])
   Apprsl2_sf$X<-st_coordinates(Apprsl2_sf)[,1]
@@ -90,7 +82,7 @@ for(i in 2018:2022){
   #Step3: aggregating corps stats
   {
     #total_corp_housing1<-rbind(total_corp_housing,Apprsl[corp==1,.(value=sum(corp),year=i),by=.(py_owner_name)])#this filters corplandlords for APPRSL 
-    total_corp_housing<-rbind(total_corp_housing,Apprsl2[corp==1,.(value=sum(corp),year=i),by=.(py_owner_name,GEOID,)])#this filters corplandlords for APPRSL
+    total_corp_housing<-rbind(total_corp_housing,Apprsl2[corp==1,.(value=sum(corp),year=i),by=.(py_owner_name,py_addr_city,py_addr_state,GEOID,TRACTCE)])#this filters corplandlords for APPRSL
   }
   
   fwrite(x=total_corp_housing,file = "../BCAD Data/total_corp_housing.csv")

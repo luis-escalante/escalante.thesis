@@ -6,3 +6,8 @@ Trendline graph
   -YOY change, track top 10 corps with highest property ownership year over year
   
 Using the total_corp_housing , aggregate the summary of corporate properties 
+
+CT Tracts
+  -map or graph
+  -for each census tract show where CL are incorporated
+  -
