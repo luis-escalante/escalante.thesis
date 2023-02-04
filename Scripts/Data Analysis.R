@@ -65,7 +65,8 @@ for(i in 2018:2022){
     q<-read.dbf(paste0("../BCAD Data/",shp_list_folder[i-2017],"/",shp_list_file[i-2017])) #Reads addreses to get lat long
     q<-q[grepl(paste(corps,collapse = "|"),  q$Owner),]
     q<-q[, q_var_list[,i-2017]]
-  }
+  } #2020 data does not have GEOID or TRACTCE values, I wanted to put 2019's values inplace of the N/A's.
+    #In script Graph Trend top 20, when I create object 'a' and then create 'subset_b' it doesn't have 2020 data. 
       
   Apprsl2<-merge(Apprsl[corp==1,],q,by.x = "prop_id_num",by.y = q_var_list[1,i-2017],all.x = T,sort = F) 
   

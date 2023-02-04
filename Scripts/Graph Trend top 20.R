@@ -4,6 +4,19 @@ library(dplyr)
 library(data.table)
 a<-data.table(read.csv("../BCAD Data/total_corp_housing.csv"))
 
+
+#add a column that couns name occurances for each tractce
+# a[, count := .N, by = c("py_owner_name", "TRACTCE", "year")] #didn't work - 
+
+#unique_a = unique(a, by = c("TRACTCE", "year")) #attemp2
+#unique_a[, count := uniqueN(py_owner_name), by = c("TRACTCE", "year")] #didn't work, or get what i need
+
+#subset_a = a[, .N, by = c("TRACTCE", "year")] #this works
+
+#for each year, count total geoid's in each Census tract  
+subset_b = a[, .N, by = c("GEOID", "TRACTCE", "year")] #No data for 2020. It's 2018, 2019, 2021, and 2022  
+
+
 ##step 1:  line graph for owners that have value >200
 #I attempted to use this script from : 
 #https://stackoverflow.com/questions/53125393/ggplot-label-the-top-n-lines
