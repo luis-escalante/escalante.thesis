@@ -3,7 +3,7 @@ library(stringi)
 library(data.table)
 library(foreign)
 library(sf)
-setwd("C:/Users/ydj154/OneDrive - University of Texas at San Antonio/Documents/escalante.thesis")
+#setwd("C:/Users/ydj154/OneDrive - University of Texas at San Antonio/Documents/escalante.thesis")
 ###DATA LOADING#
 file_list<-dir("../BCAD Data/")
 total_corp_housing<-NULL
@@ -77,7 +77,9 @@ for(i in 2018:2022){
   Apprsl2_sf<-st_join(Apprsl2_sf,q_b_tracts[,c("GEOID","TRACTCE")])
   Apprsl2_sf$X<-st_coordinates(Apprsl2_sf)[,1]
   Apprsl2_sf$Y<-st_coordinates(Apprsl2_sf)[,2]
+  #Apprsl2<-data.table(st_drop_geometry(Apprsl2_sf),stringsAsFactors = F)
   Apprsl2<-data.table(st_drop_geometry(Apprsl2_sf),stringsAsFactors = F)
+  
     }
   
   #Step3: aggregating corps stats

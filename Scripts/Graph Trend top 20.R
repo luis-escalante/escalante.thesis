@@ -18,7 +18,7 @@ a_subset1 <- a %>%
 #subset_a = a[, .N, by = c("TRACTCE", "year")] #this works
 
 #for each year, count total geoid's in each Census tract  
-#subset_b = a[, .N, by = c("GEOID", "TRACTCE", "year")] #No data for 2020. It's 2018, 2019, 2021, and 2022  
+subset_b = a[, .N, by = c("GEOID", "TRACTCE", "year")] #No data for 2020. It's 2018, 2019, 2021, and 2022  
 
 
 ##step 1:  line graph for owners that have value >200
@@ -156,5 +156,73 @@ ggsave("top_2020.png", plot = a_2020, width = 8, height = 6, units = "in", dpi =
 ggsave("top_2021.png", plot = a_2021, width = 8, height = 6, units = "in", dpi = 300)
 ggsave("top_2022.png", plot = a_2022, width = 8, height = 6, units = "in", dpi = 300)
 
+##
 
+#summarizing TRACTCE values by year
+a_summarized <- a %>%
+  group_by(TRACTCE, year) %>%
+  summarize(sum_value = sum(value)) %>%
+  ungroup() %>%
+  distinct(TRACTCE, year, .keep_all = TRUE)
+
+asum_18<- a_summarized %>%
+  filter(year == 2018) %>%
+  top_n(5, sum_value) %>%
+  ggplot(aes(x = reorder(TRACTCE, sum_value), y = sum_value, fill = TRACTCE)) +
+  geom_point() +
+  xlab("Census Tract") +
+  ylab("Total Properties") +
+  ggtitle("Top 5 Census Tracts in 2018 by Total Properties Owned by Corporate Landlords")
+asum_18
+
+asum_19<- a_summarized %>%
+  filter(year == 2019) %>%
+  top_n(5, sum_value) %>%
+  ggplot(aes(x = reorder(TRACTCE, sum_value), y = sum_value, fill = TRACTCE)) +
+  geom_point() +
+  xlab("Census Tract") +
+  ylab("Total Properties") +
+  ggtitle("Top 5 Census Tracts in 2019 by Total Properties Owned by Corporate Landlords")
+asum_19
+
+
+#NO DATA FOR 2020!!!!!NOOOOOOO
+#all the sum value is NA
+asum_20<- a_summarized %>%
+  filter(year == 2020) %>%
+  top_n(5, sum_value) %>%
+  ggplot(aes(x = reorder(TRACTCE, sum_value), y = sum_value, fill = TRACTCE)) +
+  geom_point() +
+  xlab("Census Tract") +
+  ylab("Total Properties") +
+  ggtitle("Top 5 Census Tracts in 2020 by Total Properties Owned by Corporate Landlords")
+asum_20
+
+asum_21<- a_summarized %>%
+  filter(year == 2021) %>%
+  top_n(5, sum_value) %>%
+  ggplot(aes(x = reorder(TRACTCE, sum_value), y = sum_value, fill = TRACTCE)) +
+  geom_point() +
+  xlab("Census Tract") +
+  ylab("Total Properties") +
+  ggtitle("Top 5 Census Tracts in 2021 by Total Properties Owned by Corporate Landlords")
+asum_21
+
+asum_22<- a_summarized %>%
+  filter(year == 2022) %>%
+  top_n(5, sum_value) %>%
+  ggplot(aes(x = reorder(TRACTCE, sum_value), y = sum_value, fill = TRACTCE)) +
+  geom_point() +
+  xlab("Census Tract") +
+  ylab("Total Properties") +
+  ggtitle("Top 5 Census Tracts in 2022 by Total Properties Owned by Corporate Landlords")
+asum_22
+
+ggsave("topcensus_2018.png", plot = asum_18, width = 8, height = 6, units = "in", dpi = 300)
+ggsave("topcensus_2019.png", plot = asum_19, width = 8, height = 6, units = "in", dpi = 300)
+#ggsave("topcensus_2020.png", plot = asum_20, width = 8, height = 6, units = "in", dpi = 300)
+ggsave("topcensus_2021.png", plot = asum_21, width = 8, height = 6, units = "in", dpi = 300)
+ggsave("topcensus_2022.png", plot = asum_22, width = 8, height = 6, units = "in", dpi = 300)
+
+##end
 
