@@ -44,12 +44,10 @@ for(i in 2018:2022){
     stringi::stri_sub(V1, f3_fields$Start[ii], f3_fields$End[ii])
   })]
   names(DT)<-f3_fields$`Field Name` # adding names
-  Apprsl<-DT[trimws(prop_type_cd)=="R", .(py_owner_id,prop_id,geo_id,prop_type_cd,py_owner_name,
+  Apprsl<-DT[trimws(prop_type_cd)=="R", .(py_owner_id,prop_id,geo_id,prop_type_cd,py_owner_name, partial_owner,
                                           py_addr_line1,py_addr_line2,
                                           py_addr_city,py_addr_state,py_addr_zip,py_addr_zip_cass,
-                                          tract_or_lot,appraised_val,assessed_val,mortage_co_name,
-                                          mortgage_acct_id,hs_exempt,market_value,ht_exempt)] #removed mortgage_acct_id, and mortgage_co_name as the data is not necessary
-  
+                                          tract_or_lot,appraised_val,assessed_val,hs_exempt,market_value,ht_exempt)] #removed mortgage_acct_id, and mortgage_co_name as the data is not necessary
   
   
   matches1 <- grep(paste(corps,collapse="|"), 
@@ -57,6 +55,7 @@ for(i in 2018:2022){
   
   Apprsl[matches1,corp:=1]#this denotes a yes/no on if a row is corplandlord or not.
   Apprsl[,prop_id_num:=as.numeric(prop_id)] #making prop_id a number, removing the zeroes
+  Apprsl[,py_owner_id_num:=as.numeric(py_owner_id)] #individual property OWNER ids
   Apprsl[,mark_val:=as.numeric(market_value)]#making market_value  a number, removing the zeroes
   }
   #Step 2: adding lat long by year
@@ -77,6 +76,8 @@ for(i in 2018:2022){
   Apprsl2_sf<-st_join(Apprsl2_sf,q_b_tracts[,c("GEOID","TRACTCE")])
   Apprsl2_sf$X<-st_coordinates(Apprsl2_sf)[,1]
   Apprsl2_sf$Y<-st_coordinates(Apprsl2_sf)[,2]
+ # Apprsl3_sf<-Apprsl2_sf
+
   #Apprsl2<-data.table(st_drop_geometry(Apprsl2_sf),stringsAsFactors = F)
   Apprsl2<-data.table(st_drop_geometry(Apprsl2_sf),stringsAsFactors = F)
   
@@ -85,11 +86,11 @@ for(i in 2018:2022){
   #Step3: aggregating corps stats
   {
     #total_corp_housing1<-rbind(total_corp_housing,Apprsl[corp==1,.(value=sum(corp),year=i),by=.(py_owner_name)])#this filters corplandlords for APPRSL 
-    total_corp_housing<-rbind(total_corp_housing,Apprsl2[corp==1,.(value=sum(corp),year=i),by=.(py_owner_name,py_addr_city,py_addr_state,GEOID,TRACTCE)])#this filters corplandlords for APPRSL
+    total_corp_housing<-rbind(total_corp_housing,Apprsl2[corp==1,.(TotalCLProp=sum(corp,na.rm = T),AvgMktVal=mean(mark_val,na.rm = T),year=i),by=.(py_owner_name,py_addr_city,py_addr_state,GEOID)])#this filters corplandlords for APPRSL #,,,TRACTCE,py_owner_id_num
   }
   
   fwrite(x=total_corp_housing,file = "../BCAD Data/total_corp_housing.csv")
-  fwrite(x = Apprsl2,file = paste0("../BCAD Data/appraisal_corp_",i,".csv"))
+  fwrite(x = Apprsl2,file = paste0("../BCAD Data/appraisal_corp_",i,".csv")) #2020 doesnt have any data in the XY columns, i thought i had inserted 2019's XY values? What do I do?
   fwrite(x = Apprsl,file = paste0("../BCAD Data/appraisal_",i,".csv"))
 }
 
