@@ -77,7 +77,6 @@ for(i in 2018:2022){
   Apprsl2_sf$X<-st_coordinates(Apprsl2_sf)[,1]
   Apprsl2_sf$Y<-st_coordinates(Apprsl2_sf)[,2]
  # Apprsl3_sf<-Apprsl2_sf
-
   #Apprsl2<-data.table(st_drop_geometry(Apprsl2_sf),stringsAsFactors = F)
   Apprsl2<-data.table(st_drop_geometry(Apprsl2_sf),stringsAsFactors = F)
   
