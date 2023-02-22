@@ -60,7 +60,7 @@ for(i in 2018:2022){
   }
   #Step 2: adding lat long by year
   {
-  if(i!=2020){
+  if(i!=2020){ #"prop_id" column is missing in corp_2020
     q<-read.dbf(paste0("../BCAD Data/",shp_list_folder[i-2017],"/",shp_list_file[i-2017])) #Reads addreses to get lat long
     q<-q[grepl(paste(corps,collapse = "|"),  q$Owner),]
     q<-q[, q_var_list[,i-2017]]
@@ -90,7 +90,7 @@ for(i in 2018:2022){
   
   fwrite(x=total_corp_housing,file = "../BCAD Data/total_corp_housing.csv")
   fwrite(x = Apprsl2,file = paste0("../BCAD Data/appraisal_corp_",i,".csv")) #2020 doesnt have any data in the XY columns, i thought i had inserted 2019's XY values? What do I do?
-  fwrite(x = Apprsl,file = paste0("../BCAD Data/appraisal_",i,".csv"))
+  fwrite(x = Apprsl,file = paste0("../BCAD Data/appraisal_",i,".csv")) #'corp_20.csv' is missing the column "prop_id" , how do I bring it back?
 }
 
 
